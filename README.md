@@ -76,7 +76,7 @@ The quiz is built with vanilla HTML, CSS, and JavaScript, so it can be deployed 
 
 ### Primary Colors - Warm Yellows/Golds
 - Yellow-25: #FEFDF0 (Lightest background)
-- Yellow-50: #FEEBE8 (Light background)
+- Yellow-50: #FEFBE8 (Light background / selected state)
 - Yellow-100: #FEF7C3 (Soft highlight)
 - Yellow-200: #FDE272 (Light accent)
 - Yellow-400: #FAC515 (Primary brand yellow)
@@ -88,10 +88,7 @@ The quiz is built with vanilla HTML, CSS, and JavaScript, so it can be deployed 
 - Brown-900: #713B12 (Headings, emphasis)
 - Brown-950: #542C0D (Darkest - footer, high contrast)
 
-### Path B Colors - Teal
-- Teal-400: #5DADE2
-- Teal-500: #4A9FD8
-- Teal-600: #3B8BC2
+Both paths use the same warm yellow/brown palette for a consistent brand experience.
 
 ## Browser Support
 
@@ -107,7 +104,7 @@ The quiz is built with vanilla HTML, CSS, and JavaScript, so it can be deployed 
 ## Customization
 
 ### Changing Colors
-Edit the CSS variables in `style.css`:
+Edit the CSS variables in `index.html` (all code is consolidated into a single file):
 ```css
 :root {
     --yellow-400: #FAC515;
@@ -120,7 +117,7 @@ Edit the CSS variables in `style.css`:
 Edit the HTML content in `index.html` for each step.
 
 ### Adjusting Routing Logic
-Modify the `routeToPath()` function in `script.js` to change how users are routed between paths.
+Modify the `routeToPath()` function in the `<script>` section of `index.html` to change how users are routed between paths.
 
 ## Analytics
 
