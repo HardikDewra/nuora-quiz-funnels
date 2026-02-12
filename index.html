@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuora Quiz Funnel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+:root {
+    --yellow-100: #FEF7C3;
+    --yellow-200: #FDE272;
+    --yellow-400: #FAC515;
+    --yellow-500: #EAAA08;
+    --yellow-600: #CA8504;
+    --yellow-50: #FEFBE8;
+    --brown-800: #854A0E;
+    --brown-900: #713B12;
+    --brown-950: #542C0D;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #FFFFFF;
+    color: var(--brown-950);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    font-family: 'Americana BT', Georgia, 'Times New Roman', serif;
+}
+
+.quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Quiz Header - back button + progress bar */
+.quiz-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+/* iOS-style back button */
+.back-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s ease;
+}
+
+.back-btn:active {
+    background-color: #F0F0F0;
+}
+
+.back-btn svg {
+    color: var(--brown-800);
+}
+
+/* Progress Bar - Duolingo style */
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    background-color: #F0F0F0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--yellow-400);
+    width: 0%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+/* Quiz Steps */
+.quiz-step {
+    display: none;
+    animation: fadeInUp 0.4s ease;
+    padding-top: 20px;
+}
+
+.quiz-step.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Question Titles */
+.question-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.question-subtitle {
+    font-size: 15px;
+    color: var(--brown-800);
+    margin-bottom: 24px;
+}
+
+/* Options */
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.option-btn {
+    background-color: #FFFFFF;
+    border: 1px solid var(--yellow-200);
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    color: var(--brown-900);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.option-btn:hover {
+    border-color: var(--yellow-400);
+    background-color: #FEFDF0;
+}
+
+.option-btn.selected {
+    background-color: var(--yellow-50);
+    border-color: var(--yellow-400);
+    color: var(--brown-950);
+}
+
+/* Radio indicator for single-select */
+.single-select .option-btn::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--yellow-200);
+    background-color: #FFFFFF;
+    transition: all 0.2s ease;
+}
+
+.single-select .option-btn:hover::before {
+    border-color: var(--yellow-400);
+}
+
+.single-select .option-btn.selected::before {
+    border-color: var(--brown-950);
+    background-color: var(--brown-950);
+    box-shadow: inset 0 0 0 3px white;
+    animation: checkIn 0.2s ease;
+}
+
+/* Checkbox indicator for multi-select */
+.multi-select .option-btn::before {
+    content: '\2713';
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 5px;
+    border: 2px solid var(--yellow-200);
+    background-color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: transparent;
+    transition: all 0.2s ease;
+}
+
+.multi-select .option-btn:hover::before {
+    border-color: var(--yellow-400);
+}
+
+.multi-select .option-btn.selected::before {
+    border-color: var(--brown-950);
+    background-color: var(--brown-950);
+    color: var(--yellow-400);
+    animation: checkIn 0.2s ease;
+}
+
+@keyframes checkIn {
+    0% { transform: scale(0.8); }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Continue Button */
+.continue-btn {
+    width: 100%;
+    background-color: var(--yellow-400);
+    color: var(--brown-950);
+    border: none;
+    border-radius: 12px;
+    padding: 18px 32px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.continue-btn:hover:not(:disabled) {
+    background-color: var(--yellow-200);
+    transform: translateY(-1px);
+}
+
+.continue-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Fixed bottom bar - Duolingo style */
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background-color: #FFFFFF;
+    z-index: 100;
+    border-top: 1px solid #F0F0F0;
+    display: none;
+}
+
+.bottom-bar .continue-btn {
+    max-width: 760px;
+    margin: 0 auto;
+    display: block;
+}
+
+/* Stats */
+.stats-container {
+    margin: 40px 0;
+}
+
+.stat-highlight {
+    background-color: var(--yellow-100);
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.path-b-stat {
+    background-color: var(--yellow-100);
+}
+
+.stat-number {
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--brown-900);
+    line-height: 1;
+    margin-bottom: 20px;
+}
+
+.stat-highlight p {
+    font-size: 18px;
+    color: var(--brown-900);
+    margin-bottom: 12px;
+}
+
+.stat-emphasis {
+    font-weight: 700;
+    font-size: 20px !important;
+    color: var(--brown-950) !important;
+    margin-top: 20px !important;
+}
+
+/* Proof Element */
+.proof-element {
+    margin: 40px 0;
+}
+
+.proof-element h2 {
+    font-size: 28px;
+    color: var(--brown-900);
+    margin-bottom: 32px;
+    line-height: 1.3;
+}
+
+.chart-container {
+    background-color: #FAFAFA;
+    padding: 32px;
+    border-radius: 16px;
+    margin: 24px 0;
+    border: 1px solid #F0F0F0;
+}
+
+/* Chart callout - visually distinct from buttons */
+.chart-callout {
+    background-color: #FEF7C3;
+    color: var(--brown-900);
+    padding: 14px 20px;
+    border-left: 4px solid var(--yellow-400);
+    border-radius: 0 8px 8px 0;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 16px;
+}
+
+.path-b-callout {
+    background-color: #FEF7C3;
+    border-left-color: var(--yellow-400);
+    color: var(--brown-900);
+}
+
+/* Achievability */
+.achievability-screen {
+    margin: 40px 0;
+}
+
+.achievability-screen h2 {
+    font-size: 32px;
+    color: var(--brown-900);
+    margin-bottom: 16px;
+}
+
+.achievability-text {
+    font-size: 18px;
+    color: var(--brown-800);
+    margin-bottom: 32px;
+}
+
+/* Loading Screen */
+.loading-screen {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-title {
+    font-size: 28px;
+    color: var(--brown-900);
+    margin-bottom: 40px;
+}
+
+/* Duolingo-style loading progress bar */
+.loading-progress {
+    margin-bottom: 40px;
+}
+
+.loading-progress-track {
+    width: 100%;
+    height: 24px;
+    background-color: #F0F0F0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-progress-fill {
+    height: 100%;
+    background-color: var(--yellow-400);
+    border-radius: 12px;
+    width: 0%;
+    transition: width 0.8s ease;
+}
+
+.path-b-step .loading-progress-fill {
+    background-color: var(--yellow-400);
+}
+
+.loading-percent {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--brown-800);
+}
+
+/* Loading step indicators */
+.loading-steps-list {
+    text-align: left;
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+.loading-step-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    font-size: 15px;
+    color: var(--brown-800);
+    opacity: 0.4;
+    transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.loading-step-item.active {
+    opacity: 1;
+    color: var(--brown-900);
+    font-weight: 500;
+}
+
+.loading-step-item.complete {
+    opacity: 1;
+    color: var(--brown-900);
+}
+
+.step-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #E0E0E0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.loading-step-item.active .step-check {
+    border-color: var(--yellow-400);
+    background-color: #FEF7C3;
+}
+
+.loading-step-item.complete .step-check {
+    border-color: var(--yellow-500);
+    background-color: var(--yellow-400);
+    color: var(--brown-950);
+}
+
+.loading-step-item.complete .step-check::after {
+    content: '\2713';
+    font-weight: 700;
+}
+
+.path-b-step .loading-step-item.active .step-check {
+    border-color: var(--yellow-400);
+    background-color: #FEF7C3;
+}
+
+.path-b-step .loading-step-item.complete .step-check {
+    border-color: var(--yellow-500);
+    background-color: var(--yellow-400);
+    color: var(--brown-950);
+}
+
+/* Results Page */
+.results-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--brown-900);
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.results-section {
+    background-color: #FAFAFA;
+    padding: 40px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    border: 1px solid #F0F0F0;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--yellow-500);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.results-list {
+    list-style: none;
+    margin: 24px 0;
+}
+
+.results-list li {
+    font-size: 18px;
+    color: var(--brown-900);
+    margin-bottom: 16px;
+    padding-left: 8px;
+    opacity: 0;
+    animation: fadeInItem 0.4s ease forwards;
+}
+
+.results-list li:nth-child(1) { animation-delay: 0.15s; }
+.results-list li:nth-child(2) { animation-delay: 0.35s; }
+.results-list li:nth-child(3) { animation-delay: 0.55s; }
+
+@keyframes fadeInItem {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results-list li::before {
+    content: "\2022";
+    color: var(--yellow-500);
+    font-weight: bold;
+    font-size: 24px;
+    margin-right: 12px;
+}
+
+.highlight {
+    color: var(--yellow-600);
+    font-weight: 700;
+}
+
+.path-b-highlight {
+    color: var(--yellow-600);
+}
+
+.recommendation-list {
+    list-style: none;
+    margin: 24px 0;
+}
+
+.recommendation-list li {
+    font-size: 16px;
+    color: var(--brown-900);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+/* Avatar Section */
+.avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid #F0F0F0;
+}
+
+.avatar-stack {
+    display: flex;
+    margin-left: -8px;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid white;
+    margin-left: -12px;
+    background-color: var(--yellow-400);
+}
+
+.avatar:first-child {
+    margin-left: 0;
+}
+
+.avatar-text {
+    font-size: 16px;
+    color: var(--brown-800);
+    font-weight: 600;
+}
+
+/* CTA Button */
+.cta-button {
+    display: block;
+    width: 100%;
+    background-color: var(--yellow-500);
+    color: var(--brown-950);
+    text-align: center;
+    padding: 24px 40px;
+    border-radius: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    margin-top: 32px;
+    animation: subtlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.015); }
+}
+
+.cta-button:hover {
+    background-color: var(--yellow-400);
+    animation: none;
+    transform: translateY(-1px);
+}
+
+.path-b-cta {
+    background-color: var(--yellow-500);
+    color: var(--brown-950);
+}
+
+.path-b-cta:hover {
+    background-color: var(--yellow-400);
+}
+
+.cta-footer {
+    text-align: center;
+    font-size: 14px;
+    color: var(--brown-800);
+    margin-top: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quiz-container {
+        padding: 20px 16px;
+    }
+
+    .question-title {
+        font-size: 26px;
+    }
+
+    .option-btn {
+        padding: 16px 20px;
+        font-size: 15px;
+    }
+
+    .stat-number {
+        font-size: 52px;
+    }
+
+    .results-section {
+        padding: 24px;
+    }
+
+    .results-title {
+        font-size: 28px;
+    }
+
+    .cta-button {
+        font-size: 18px;
+        padding: 20px 32px;
+    }
+
+    .loading-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .question-title {
+        font-size: 22px;
+    }
+
+    .option-btn {
+        padding: 18px 16px;
+        font-size: 14px;
+        min-height: 56px;
+    }
+
+    .single-select .option-btn::before,
+    .multi-select .option-btn::before {
+        margin-top: 1px;
+    }
+
+    .stat-number {
+        font-size: 42px;
+    }
+
+    .chart-container {
+        padding: 20px;
+    }
+
+    .loading-progress-track {
+        height: 20px;
+    }
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <button class="back-btn" id="backBtn" aria-label="Go back">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Step 1: Age Range -->
+        <div class="quiz-step active" id="step1">
+            <h1 class="question-title">What is your age range?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step2" data-value="under-25">Under 25</button>
+                <button class="option-btn" data-next="step2" data-value="25-34">25-34</button>
+                <button class="option-btn" data-next="step2" data-value="35-44">35-44</button>
+                <button class="option-btn" data-next="step2" data-value="45-54">45-54</button>
+                <button class="option-btn" data-next="step2" data-value="55+">55+</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Symptom Selection -->
+        <div class="quiz-step" id="step2">
+            <h1 class="question-title">What's been going on lately?</h1>
+            <p class="question-subtitle">Select all that apply</p>
+            <div class="options-container multi-select">
+                <button class="option-btn multi" data-path="A" data-value="odor">Odor that comes and goes</button>
+                <button class="option-btn multi" data-path="A" data-value="discharge">Unusual discharge</button>
+                <button class="option-btn multi" data-path="B" data-value="dryness">Dryness or discomfort during intimacy</button>
+                <button class="option-btn multi" data-path="A" data-value="freshness">Not feeling fresh, even after a shower</button>
+                <button class="option-btn multi" data-path="NEUTRAL" data-value="recurring">Things that keep coming back</button>
+            </div>
+        </div>
+
+        <!-- Step 3A: Duration -->
+        <div class="quiz-step path-a-step" id="step3a">
+            <h1 class="question-title">How long has this been a thing?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step4a" data-value="few-weeks">A few weeks</button>
+                <button class="option-btn" data-next="step4a" data-value="couple-months">A couple of months</button>
+                <button class="option-btn" data-next="step4a" data-value="six-months">Six months to a year</button>
+                <button class="option-btn" data-next="step4a" data-value="over-year">Over a year</button>
+                <button class="option-btn" data-next="step4a" data-value="on-off-years">On and off for years</button>
+            </div>
+        </div>
+
+        <!-- Step 4A: Behaviors -->
+        <div class="quiz-step path-a-step" id="step4a">
+            <h1 class="question-title">Which of these sounds familiar?</h1>
+            <p class="question-subtitle">Select all that apply</p>
+            <div class="options-container multi-select">
+                <button class="option-btn multi" data-value="checking">Checking throughout the day - bathroom trips that are really smell checks</button>
+                <button class="option-btn multi" data-value="showering">Showering before any kind of closeness</button>
+                <button class="option-btn multi" data-value="liners">Wearing liners daily or changing underwear more than once</button>
+                <button class="option-btn multi" data-value="pulling-away">Pulling away when a partner gets close</button>
+                <button class="option-btn multi" data-value="planning">Planning everything around it - what to wear, when to shower</button>
+            </div>
+        </div>
+
+        <!-- Step 4A: Stats -->
+        <div class="quiz-step path-a-step" id="step4a-stats">
+            <div class="stats-container">
+                <div class="stat-highlight">
+                    <div class="stat-number" data-target="29" data-suffix=" million+">0</div>
+                    <p>American women experience recurring vaginal odor or unusual discharge every year. This is far more common than it feels.</p>
+                    <p class="stat-emphasis">And it is preventable.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5A: Tried Before -->
+        <div class="quiz-step path-a-step" id="step5a">
+            <h1 class="question-title">What have you already tried?</h1>
+            <p class="question-subtitle">Select all that apply</p>
+            <div class="options-container multi-select">
+                <button class="option-btn multi" data-value="antibiotics">Antibiotics</button>
+                <button class="option-btn multi" data-value="boric-acid">Boric acid suppositories</button>
+                <button class="option-btn multi" data-value="probiotics">Probiotics</button>
+                <button class="option-btn multi" data-value="washes">Washes, sprays, or pH products</button>
+                <button class="option-btn multi" data-value="home-remedies">Home remedies or diet changes</button>
+                <button class="option-btn multi" data-value="everything">A bit of everything</button>
+            </div>
+        </div>
+
+        <!-- Step 5A: Proof -->
+        <div class="quiz-step path-a-step" id="step5a-proof">
+            <div class="proof-element">
+                <h2>Nuora is 4.5x more effective at eliminating odor than conventional treatments.</h2>
+                <div class="chart-container">
+                    <canvas id="chartPathA1"></canvas>
+                </div>
+                <div class="chart-callout">Nuora is 4.5X more effective</div>
+            </div>
+        </div>
+
+        <!-- Step 6A: Frustration -->
+        <div class="quiz-step path-a-step" id="step6a">
+            <h1 class="question-title">What's been the most frustrating part for you?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step7a" data-value="coming-back">It keeps coming back</button>
+                <button class="option-btn" data-next="step7a" data-value="spending">Spending money on things that don't last</button>
+                <button class="option-btn" data-next="step7a" data-value="confidence">The way it's changed confidence</button>
+                <button class="option-btn" data-next="step7a" data-value="cause">Not knowing what's actually causing it</button>
+                <button class="option-btn" data-next="step7a" data-value="planning-it">Having to plan around it constantly</button>
+            </div>
+        </div>
+
+        <!-- Step 7A: Timeline -->
+        <div class="quiz-step path-a-step" id="step7a">
+            <h1 class="question-title">How quickly do you want to see results?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step7a-achievability" data-value="week">Within a week</button>
+                <button class="option-btn" data-next="step7a-achievability" data-value="two-weeks">Within two weeks</button>
+                <button class="option-btn" data-next="step7a-achievability" data-value="month">Within a month</button>
+                <button class="option-btn" data-next="step7a-achievability" data-value="patient">I'm patient, as long as it works</button>
+            </div>
+        </div>
+
+        <!-- Step 7A: Achievability -->
+        <div class="quiz-step path-a-step" id="step7a-achievability">
+            <div class="achievability-screen">
+                <h2>That timeline is very realistic.</h2>
+                <p class="achievability-text">In an independent study, 92% of our users stopped odor and discharge coming back!</p>
+                <div class="chart-container">
+                    <canvas id="chartPathA2"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 8A: Goal -->
+        <div class="quiz-step path-a-step" id="step8a">
+            <h1 class="question-title">If one thing could change, what would it be?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="loadingA" data-value="fresh">Feeling fresh without thinking about it</button>
+                <button class="option-btn" data-next="loadingA" data-value="comfortable">Being comfortable during intimacy again</button>
+                <button class="option-btn" data-next="loadingA" data-value="cycle">Breaking the cycle for good</button>
+                <button class="option-btn" data-next="loadingA" data-value="myself">Just feeling like myself again</button>
+            </div>
+        </div>
+
+        <!-- Loading A -->
+        <div class="quiz-step path-a-step" id="loadingA">
+            <div class="loading-screen">
+                <h2 class="loading-title">Analyzing your responses</h2>
+                <div class="loading-progress">
+                    <div class="loading-progress-track">
+                        <div class="loading-progress-fill" id="loadingBarA"></div>
+                    </div>
+                    <span class="loading-percent" id="loadingPercentA">0%</span>
+                </div>
+                <div class="loading-steps-list">
+                    <div class="loading-step-item" id="loadStepA1">
+                        <span class="step-check"></span>
+                        <span>Matching responses to research</span>
+                    </div>
+                    <div class="loading-step-item" id="loadStepA2">
+                        <span class="step-check"></span>
+                        <span>Reviewing clinical data</span>
+                    </div>
+                    <div class="loading-step-item" id="loadStepA3">
+                        <span class="step-check"></span>
+                        <span>Building personalized recommendation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results A -->
+        <div class="quiz-step path-a-step" id="resultsA">
+            <h1 class="results-title">Your personalised recommendation is ready.</h1>
+
+            <div class="results-section">
+                <h3 class="section-title">PREDICTED RESULTS</h3>
+                <p>Based on your responses, we predict you'll start to see:</p>
+                <ul class="results-list">
+                    <li><strong>Reduced odor or unusual discharge</strong> within <span class="highlight">5-7 days</span></li>
+                    <li><strong>Consistent freshness</strong> within <span class="highlight">2-3 weeks</span></li>
+                    <li><strong>Long-lasting results</strong> within <span class="highlight">3 weeks+</span></li>
+                </ul>
+                <div class="chart-container">
+                    <canvas id="chartResultsA"></canvas>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h3 class="section-title">YOUR RECOMMENDATION INCLUDES</h3>
+                <ul class="recommendation-list">
+                    <li>&#10003; Targeted support matched to odor and discharge concerns</li>
+                    <li>&#10003; Bromelain enzyme + Bacillus coagulans probiotic - the combination that dissolved 93% of biofilm in clinical testing</li>
+                    <li>&#10003; 60-day money-back guarantee</li>
+                    <li>&#10003; Free shipping</li>
+                </ul>
+                <div class="avatar-section">
+                    <div class="avatar-stack">
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                    </div>
+                    <p class="avatar-text">47,832 women have found relief</p>
+                </div>
+            </div>
+
+            <a href="https://mynuora.com/products/feminine-balance-gummies-1" class="cta-button">
+                See the full recommendation
+            </a>
+            <p class="cta-footer">60-day money-back guarantee - Free shipping - Cancel anytime</p>
+        </div>
+
+        <!-- Step 3B: Duration -->
+        <div class="quiz-step path-b-step" id="step3b">
+            <h1 class="question-title">How long has the dryness or discomfort been going on?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step4b" data-value="few-weeks">A few weeks</button>
+                <button class="option-btn" data-next="step4b" data-value="couple-months">A couple of months</button>
+                <button class="option-btn" data-next="step4b" data-value="six-months">Six months to a year</button>
+                <button class="option-btn" data-next="step4b" data-value="over-year">Over a year</button>
+                <button class="option-btn" data-next="step4b" data-value="feels-normal">So long it feels normal now</button>
+            </div>
+        </div>
+
+        <!-- Step 4B: Behaviors -->
+        <div class="quiz-step path-b-step" id="step4b">
+            <h1 class="question-title">Which of these sounds familiar?</h1>
+            <p class="question-subtitle">Select all that apply</p>
+            <div class="options-container multi-select">
+                <button class="option-btn multi" data-value="painful">Intimacy feels painful - friction, burning, or tearing</button>
+                <button class="option-btn multi" data-value="not-wet">Not getting wet even when aroused</button>
+                <button class="option-btn multi" data-value="avoiding">Avoiding or dreading intimacy</button>
+                <button class="option-btn multi" data-value="lube">Reaching for lube every time and it's still not enough</button>
+                <button class="option-btn multi" data-value="soreness">Soreness or irritation even outside of intimacy</button>
+                <button class="option-btn multi" data-value="excuses">Making excuses to avoid closeness</button>
+            </div>
+        </div>
+
+        <!-- Step 4B: Stats -->
+        <div class="quiz-step path-b-step" id="step4b-stats">
+            <div class="stats-container">
+                <div class="stat-highlight path-b-stat">
+                    <div class="stat-number" data-target="17" data-suffix=" million+">0</div>
+                    <p>American women experience vaginal dryness - and not just after menopause. It happens at every age and every stage.</p>
+                    <p class="stat-emphasis">This is far more common than it feels. And it doesn't have to be permanent.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5B: Tried Before -->
+        <div class="quiz-step path-b-step" id="step5b">
+            <h1 class="question-title">What have you already tried?</h1>
+            <p class="question-subtitle">Select all that apply</p>
+            <div class="options-container multi-select">
+                <button class="option-btn multi" data-value="water-lube">Water-based lubricants</button>
+                <button class="option-btn multi" data-value="oils">Coconut oil or natural oils</button>
+                <button class="option-btn multi" data-value="estrogen">Estrogen cream or vaginal estrogen</button>
+                <button class="option-btn multi" data-value="hrt">HRT</button>
+                <button class="option-btn multi" data-value="moisturizers">Vaginal moisturizers or suppositories</button>
+                <button class="option-btn multi" data-value="probiotics">Probiotics</button>
+                <button class="option-btn multi" data-value="everything">A bit of everything</button>
+            </div>
+        </div>
+
+        <!-- Step 5B: Proof -->
+        <div class="quiz-step path-b-step" id="step5b-proof">
+            <div class="proof-element">
+                <h2>Nuora is 4.5x more effective at restoring natural moisture than conventional treatments.</h2>
+                <div class="chart-container">
+                    <canvas id="chartPathB1"></canvas>
+                </div>
+                <div class="chart-callout path-b-callout">Nuora is 4.5X more effective</div>
+            </div>
+        </div>
+
+        <!-- Step 6B: Frustration -->
+        <div class="quiz-step path-b-step" id="step6b">
+            <h1 class="question-title">What's been the most frustrating part for you?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step7b" data-value="never-fixes">It never actually fixes the dryness</button>
+                <button class="option-btn" data-next="step7b" data-value="relationships">The impact it's had on relationships</button>
+                <button class="option-btn" data-next="step7b" data-value="stopped-working">Feeling like the body stopped working</button>
+                <button class="option-btn" data-next="step7b" data-value="permanent">Not knowing if this is permanent</button>
+                <button class="option-btn" data-next="step7b" data-value="getting-older">Being told "it's just part of getting older"</button>
+            </div>
+        </div>
+
+        <!-- Step 7B: Timeline -->
+        <div class="quiz-step path-b-step" id="step7b">
+            <h1 class="question-title">How quickly do you want to see results?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="step7b-achievability" data-value="2-3-weeks">Within 2-3 weeks</button>
+                <button class="option-btn" data-next="step7b-achievability" data-value="month">Within a month</button>
+                <button class="option-btn" data-next="step7b-achievability" data-value="2-3-months">Within 2-3 months</button>
+                <button class="option-btn" data-next="step7b-achievability" data-value="patient">I'm patient, as long as it works</button>
+            </div>
+        </div>
+
+        <!-- Step 7B: Achievability -->
+        <div class="quiz-step path-b-step" id="step7b-achievability">
+            <div class="achievability-screen">
+                <h2>That timeline is very achievable.</h2>
+                <p class="achievability-text">In an independent study, 92% of our users saw restored natural moisture and improved comfort!</p>
+                <div class="chart-container">
+                    <canvas id="chartPathB2"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 8B: Goal -->
+        <div class="quiz-step path-b-step" id="step8b">
+            <h1 class="question-title">If one thing could change, what would it be?</h1>
+            <div class="options-container single-select">
+                <button class="option-btn" data-next="loadingB" data-value="wet-again">Getting naturally wet again</button>
+                <button class="option-btn" data-next="loadingB" data-value="no-pain">Intimacy without pain</button>
+                <button class="option-btn" data-next="loadingB" data-value="body-works">Feeling like the body works the way it used to</button>
+                <button class="option-btn" data-next="loadingB" data-value="myself">Just feeling like myself again</button>
+            </div>
+        </div>
+
+        <!-- Loading B -->
+        <div class="quiz-step path-b-step" id="loadingB">
+            <div class="loading-screen">
+                <h2 class="loading-title">Analyzing your responses</h2>
+                <div class="loading-progress">
+                    <div class="loading-progress-track">
+                        <div class="loading-progress-fill" id="loadingBarB"></div>
+                    </div>
+                    <span class="loading-percent" id="loadingPercentB">0%</span>
+                </div>
+                <div class="loading-steps-list">
+                    <div class="loading-step-item" id="loadStepB1">
+                        <span class="step-check"></span>
+                        <span>Matching responses to research</span>
+                    </div>
+                    <div class="loading-step-item" id="loadStepB2">
+                        <span class="step-check"></span>
+                        <span>Reviewing clinical data</span>
+                    </div>
+                    <div class="loading-step-item" id="loadStepB3">
+                        <span class="step-check"></span>
+                        <span>Building personalized recommendation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results B -->
+        <div class="quiz-step path-b-step" id="resultsB">
+            <h1 class="results-title">Your personalised recommendation is ready.</h1>
+
+            <div class="results-section">
+                <h3 class="section-title">PREDICTED RESULTS</h3>
+                <p>Based on your responses, we predict you'll start to see:</p>
+                <ul class="results-list">
+                    <li><strong>Improved comfort</strong> within <span class="highlight path-b-highlight">2-3 weeks</span></li>
+                    <li><strong>Natural moisture returning</strong> by <span class="highlight path-b-highlight">4-6 weeks</span></li>
+                    <li><strong>Long-lasting results</strong> within <span class="highlight path-b-highlight">6-8 weeks</span></li>
+                </ul>
+                <div class="chart-container">
+                    <canvas id="chartResultsB"></canvas>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h3 class="section-title">YOUR RECOMMENDATION INCLUDES</h3>
+                <ul class="recommendation-list">
+                    <li>&#10003; Targeted support matched to dryness and discomfort concerns</li>
+                    <li>&#10003; Bromelain enzyme + Bacillus coagulans probiotic - the combination that restored natural moisture in 92% of users</li>
+                    <li>&#10003; 60-day money-back guarantee</li>
+                    <li>&#10003; Free shipping</li>
+                </ul>
+                <div class="avatar-section">
+                    <div class="avatar-stack">
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                        <div class="avatar"></div>
+                    </div>
+                    <p class="avatar-text">47,832 women have found relief</p>
+                </div>
+            </div>
+
+            <a href="https://mynuora.com/products/gummies" class="cta-button path-b-cta">
+                See the full recommendation
+            </a>
+            <p class="cta-footer">60-day money-back guarantee - Free shipping - Cancel anytime</p>
+        </div>
+    </div>
+
+    <!-- Fixed bottom bar - Duolingo style -->
+    <div class="bottom-bar" id="bottomBar">
+        <button class="continue-btn" id="globalContinueBtn" disabled>Continue</button>
+    </div>
+
+    <script>
+const quizState = {
+    currentStep: 'step1',
+    selectedPath: null,
+    pathScores: { A: 0, B: 0 },
+    answers: {},
+    stepHistory: []
+};
+
+const charts = {};
+
+// Config for which steps show the bottom continue bar
+const continueConfig = {
+    'step2': { action: 'route', multiSelect: true },
+    'step4a': { next: 'step4a-stats', multiSelect: true },
+    'step4a-stats': { next: 'step5a', multiSelect: false },
+    'step5a': { next: 'step5a-proof', multiSelect: true },
+    'step5a-proof': { next: 'step6a', multiSelect: false },
+    'step7a-achievability': { next: 'step8a', multiSelect: false },
+    'step4b': { next: 'step4b-stats', multiSelect: true },
+    'step4b-stats': { next: 'step5b', multiSelect: false },
+    'step5b': { next: 'step5b-proof', multiSelect: true },
+    'step5b-proof': { next: 'step6b', multiSelect: false },
+    'step7b-achievability': { next: 'step8b', multiSelect: false }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeQuiz();
+    setupEventListeners();
+    updateProgress();
+});
+
+function initializeQuiz() {
+    showStep('step1');
+    updateBackButton();
+    updateBottomBar();
+}
+
+function setupEventListeners() {
+    document.querySelectorAll('.single-select .option-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            handleSingleSelect(e.target.closest('.option-btn'));
+        });
+    });
+
+    document.querySelectorAll('.multi-select .option-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            handleMultiSelect(e.target.closest('.option-btn'));
+        });
+    });
+
+    document.getElementById('globalContinueBtn').addEventListener('click', handleGlobalContinue);
+    document.getElementById('backBtn').addEventListener('click', goBack);
+}
+
+function handleSingleSelect(button) {
+    if (!button) return;
+    const container = button.closest('.options-container');
+    container.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+
+    button.classList.add('selected');
+
+    const currentStep = document.querySelector('.quiz-step.active').id;
+    quizState.answers[currentStep] = button.getAttribute('data-value');
+
+    const nextStep = button.getAttribute('data-next');
+    setTimeout(() => {
+        navigateToStep(nextStep);
+    }, 350);
+}
+
+function handleMultiSelect(button) {
+    if (!button) return;
+    button.classList.toggle('selected');
+
+    const currentStep = document.querySelector('.quiz-step.active').id;
+    const container = button.closest('.quiz-step');
+    const selectedButtons = container.querySelectorAll('.option-btn.selected');
+
+    // Update global continue button state
+    const globalBtn = document.getElementById('globalContinueBtn');
+    globalBtn.disabled = selectedButtons.length === 0;
+
+    if (currentStep === 'step2') {
+        updatePathScores();
+    }
+
+    const selectedValues = Array.from(selectedButtons).map(btn =>
+        btn.getAttribute('data-value')
+    );
+    quizState.answers[currentStep] = selectedValues;
+}
+
+function handleGlobalContinue() {
+    const config = continueConfig[quizState.currentStep];
+    if (!config) return;
+
+    // Save multi-select answers before continuing
+    if (config.multiSelect) {
+        const activeStep = document.querySelector('.quiz-step.active');
+        const selectedButtons = activeStep.querySelectorAll('.option-btn.selected');
+        const selectedValues = Array.from(selectedButtons).map(btn =>
+            btn.getAttribute('data-value')
+        );
+        quizState.answers[quizState.currentStep] = selectedValues;
+    }
+
+    if (config.action === 'route') {
+        routeToPath();
+    } else {
+        navigateToStep(config.next);
+    }
+}
+
+function updatePathScores() {
+    quizState.pathScores = { A: 0, B: 0 };
+    const step2 = document.getElementById('step2');
+    const selectedButtons = step2.querySelectorAll('.option-btn.selected');
+
+    selectedButtons.forEach(btn => {
+        const path = btn.getAttribute('data-path');
+        if (path === 'A') quizState.pathScores.A++;
+        else if (path === 'B') quizState.pathScores.B++;
+    });
+}
+
+function routeToPath() {
+    if (quizState.pathScores.B > quizState.pathScores.A) {
+        quizState.selectedPath = 'B';
+        navigateToStep('step3b');
+    } else {
+        quizState.selectedPath = 'A';
+        navigateToStep('step3a');
+    }
+}
+
+function goBack() {
+    if (quizState.stepHistory.length === 0) return;
+
+    const previousStep = quizState.stepHistory.pop();
+
+    const currentStep = document.querySelector('.quiz-step.active');
+    if (currentStep) {
+        currentStep.classList.remove('active');
+        currentStep.style.paddingBottom = '';
+    }
+
+    const prevStepEl = document.getElementById(previousStep);
+    if (prevStepEl) {
+        prevStepEl.classList.add('active');
+        quizState.currentStep = previousStep;
+        updateProgress();
+        updateBottomBar();
+        updateBackButton();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function navigateToStep(stepId) {
+    quizState.stepHistory.push(quizState.currentStep);
+
+    const currentStep = document.querySelector('.quiz-step.active');
+    if (currentStep) {
+        currentStep.classList.remove('active');
+        currentStep.style.paddingBottom = '';
+    }
+
+    const nextStep = document.getElementById(stepId);
+    if (nextStep) {
+        nextStep.classList.add('active');
+        quizState.currentStep = stepId;
+
+        updateProgress();
+        updateBottomBar();
+        updateBackButton();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        initializeChartsForStep(stepId);
+
+        if (stepId === 'loadingA' || stepId === 'loadingB') {
+            startLoadingAnimation(stepId);
+        }
+
+        if (stepId === 'step4a-stats' || stepId === 'step4b-stats') {
+            const statEl = nextStep.querySelector('.stat-number');
+            if (statEl && statEl.getAttribute('data-target')) {
+                animateStatNumber(statEl);
+            }
+        }
+    }
+}
+
+function showStep(stepId) {
+    const step = document.getElementById(stepId);
+    if (step) {
+        step.classList.add('active');
+        quizState.currentStep = stepId;
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progressMap = {
+        'step1': 5,
+        'step2': 15,
+        'step3a': 25, 'step3b': 25,
+        'step4a': 35, 'step4b': 35,
+        'step4a-stats': 40, 'step4b-stats': 40,
+        'step5a': 50, 'step5b': 50,
+        'step5a-proof': 55, 'step5b-proof': 55,
+        'step6a': 65, 'step6b': 65,
+        'step7a': 75, 'step7b': 75,
+        'step7a-achievability': 80, 'step7b-achievability': 80,
+        'step8a': 90, 'step8b': 90,
+        'loadingA': 95, 'loadingB': 95,
+        'resultsA': 100, 'resultsB': 100
+    };
+
+    const progress = progressMap[quizState.currentStep] || 0;
+    progressBar.style.width = progress + '%';
+}
+
+function updateBottomBar() {
+    const bottomBar = document.getElementById('bottomBar');
+    const globalBtn = document.getElementById('globalContinueBtn');
+    const config = continueConfig[quizState.currentStep];
+    const activeStep = document.querySelector('.quiz-step.active');
+
+    if (config) {
+        bottomBar.style.display = 'block';
+
+        if (config.multiSelect) {
+            const selected = activeStep ? activeStep.querySelectorAll('.option-btn.selected') : [];
+            globalBtn.disabled = selected.length === 0;
+        } else {
+            globalBtn.disabled = false;
+        }
+
+        // Add bottom padding for clearance
+        if (activeStep) activeStep.style.paddingBottom = '100px';
+    } else {
+        bottomBar.style.display = 'none';
+        if (activeStep) activeStep.style.paddingBottom = '';
+    }
+}
+
+function updateBackButton() {
+    const backBtn = document.getElementById('backBtn');
+    const noBackSteps = ['step1', 'loadingA', 'loadingB', 'resultsA', 'resultsB'];
+    backBtn.style.display = noBackSteps.includes(quizState.currentStep) ? 'none' : 'flex';
+}
+
+function animateStatNumber(element) {
+    const target = parseInt(element.getAttribute('data-target'));
+    const suffix = element.getAttribute('data-suffix') || '';
+    let current = 0;
+    const duration = 1400;
+    const stepTime = 16;
+    const increment = target / (duration / stepTime);
+
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current) + suffix;
+    }, stepTime);
+}
+
+function startLoadingAnimation(stepId) {
+    const isPathA = stepId === 'loadingA';
+    const prefix = isPathA ? 'A' : 'B';
+    const loadingBar = document.getElementById('loadingBar' + prefix);
+    const percentEl = document.getElementById('loadingPercent' + prefix);
+
+    const steps = [
+        { id: 'loadStep' + prefix + '1', progress: 33 },
+        { id: 'loadStep' + prefix + '2', progress: 66 },
+        { id: 'loadStep' + prefix + '3', progress: 100 }
+    ];
+
+    let currentIdx = 0;
+
+    const firstStep = document.getElementById(steps[0].id);
+    if (firstStep) firstStep.classList.add('active');
+
+    const interval = setInterval(() => {
+        if (currentIdx < steps.length) {
+            const step = steps[currentIdx];
+            loadingBar.style.width = step.progress + '%';
+            percentEl.textContent = step.progress + '%';
+
+            const stepEl = document.getElementById(step.id);
+            if (stepEl) {
+                stepEl.classList.remove('active');
+                stepEl.classList.add('complete');
+            }
+
+            currentIdx++;
+
+            if (currentIdx < steps.length) {
+                const nextStepEl = document.getElementById(steps[currentIdx].id);
+                if (nextStepEl) nextStepEl.classList.add('active');
+            }
+        } else {
+            clearInterval(interval);
+            setTimeout(() => {
+                navigateToStep(isPathA ? 'resultsA' : 'resultsB');
+            }, 600);
+        }
+    }, 1200);
+}
+
+function initializeChartsForStep(stepId) {
+    switch(stepId) {
+        case 'step5a-proof':
+            createComparisonChart('chartPathA1', '#FAC515');
+            break;
+        case 'step7a-achievability':
+            createTimelineChart('chartPathA2', '#FAC515', 'Freshness with vs without Nuora');
+            break;
+        case 'resultsA':
+            createResultsChart('chartResultsA', '#FAC515', 'Your Freshness Journey',
+                ['Day 1', 'Week 1', 'Week 2', 'Week 3+'],
+                ['Start', 'Odor fades', 'Balance holds', 'New normal']);
+            break;
+        case 'step5b-proof':
+            createComparisonChart('chartPathB1', '#FAC515');
+            break;
+        case 'step7b-achievability':
+            createTimelineChart('chartPathB2', '#FAC515', 'Natural moisture with vs without Nuora');
+            break;
+        case 'resultsB':
+            createResultsChart('chartResultsB', '#FAC515', 'Your Moisture Journey',
+                ['Week 1', 'Week 3', 'Week 6+'],
+                ['Environment resets', 'Comfort returns', 'Natural moisture']);
+            break;
+    }
+}
+
+function createComparisonChart(canvasId, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || charts[canvasId]) return;
+
+    const ctx = canvas.getContext('2d');
+    charts[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Conventional Treatments', 'Nuora'],
+            datasets: [{
+                label: 'Effectiveness',
+                data: [1, 4.5],
+                backgroundColor: ['#E0E0E0', color],
+                borderColor: ['#BDBDBD', color],
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + 'x effectiveness';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        callback: function(value) { return value + 'x'; },
+                        font: { family: 'Montserrat' }
+                    },
+                    grid: { color: '#F5F5F5' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Montserrat' } }
+                }
+            }
+        }
+    });
+}
+
+function createTimelineChart(canvasId, color, title) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || charts[canvasId]) return;
+
+    const ctx = canvas.getContext('2d');
+    charts[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Now', 'Week 1', 'Week 2', 'Week 3', 'Month 1'],
+            datasets: [
+                {
+                    label: 'Without Nuora',
+                    data: [50, 45, 40, 35, 30],
+                    borderColor: '#BDBDBD',
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#BDBDBD'
+                },
+                {
+                    label: 'With Nuora',
+                    data: [50, 65, 80, 90, 95],
+                    borderColor: color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: color,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { size: 13, weight: '600', family: 'Montserrat' }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: title,
+                    font: { size: 16, weight: '700', family: 'Montserrat' },
+                    padding: { bottom: 20 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: '#F5F5F5' },
+                    ticks: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Montserrat' } }
+                }
+            }
+        }
+    });
+}
+
+function createResultsChart(canvasId, color, title, labels, milestones) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || charts[canvasId]) return;
+
+    const ctx = canvas.getContext('2d');
+
+    charts[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Progress',
+                data: labels.map((_, i) => (i + 1) * (100 / labels.length)),
+                borderColor: color,
+                backgroundColor: 'transparent',
+                borderWidth: 4,
+                tension: 0.4,
+                pointRadius: 6,
+                pointBackgroundColor: color,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 3,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: title,
+                    font: { size: 18, weight: '700', family: 'Montserrat' },
+                    padding: { bottom: 30 },
+                    color: '#713B12'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return milestones[context.dataIndex];
+                        }
+                    },
+                    backgroundColor: color,
+                    padding: 12,
+                    titleFont: { size: 14, weight: '600', family: 'Montserrat' },
+                    bodyFont: { size: 13, family: 'Montserrat' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: '#F5F5F5' },
+                    ticks: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 12, weight: '600', family: 'Montserrat' },
+                        color: '#713B12'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const el = document.activeElement;
+        if (el.classList.contains('option-btn') || el.classList.contains('continue-btn')) {
+            el.click();
+        }
+    }
+});
+
+// Accessibility
+document.querySelectorAll('.option-btn, .continue-btn').forEach(btn => {
+    btn.setAttribute('role', 'button');
+    btn.setAttribute('tabindex', '0');
+});
+    </script>
+</body>
+</html>
