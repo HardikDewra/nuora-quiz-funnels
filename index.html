@@ -686,7 +686,7 @@ h1, h2, h3 {
     }
 
     .chart-container {
-        padding: 20px;
+        padding: 16px 12px;
     }
 
     .loading-progress-track {
@@ -1436,6 +1436,8 @@ function initializeChartsForStep(stepId) {
     }
 }
 
+const isMobile = window.innerWidth <= 768;
+
 function createComparisonChart(canvasId, color) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || charts[canvasId]) return;
@@ -1444,20 +1446,23 @@ function createComparisonChart(canvasId, color) {
     charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Conventional Treatments', 'Nuora'],
+            labels: ['Conventional', 'Nuora'],
             datasets: [{
                 label: 'Effectiveness',
                 data: [1, 4.5],
                 backgroundColor: ['#E0E0E0', color],
                 borderColor: ['#BDBDBD', color],
                 borderWidth: 1,
-                borderRadius: 8
+                borderRadius: isMobile ? 6 : 8,
+                barPercentage: isMobile ? 0.6 : 0.7,
+                categoryPercentage: isMobile ? 0.7 : 0.8
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            aspectRatio: 2,
+            aspectRatio: isMobile ? 1.3 : 2,
+            layout: { padding: isMobile ? { top: 8, bottom: 4 } : {} },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -1474,13 +1479,17 @@ function createComparisonChart(canvasId, color) {
                     max: 5,
                     ticks: {
                         callback: function(value) { return value + 'x'; },
-                        font: { family: 'Montserrat' }
+                        font: { size: isMobile ? 12 : 14, family: 'Montserrat' },
+                        color: '#854A0E'
                     },
                     grid: { color: '#F5F5F5' }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { family: 'Montserrat' } }
+                    ticks: {
+                        font: { size: isMobile ? 12 : 14, weight: '600', family: 'Montserrat' },
+                        color: '#713B12'
+                    }
                 }
             }
         }
@@ -1495,16 +1504,16 @@ function createTimelineChart(canvasId, color, title) {
     charts[canvasId] = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Now', 'Week 1', 'Week 2', 'Week 3', 'Month 1'],
+            labels: isMobile ? ['Now', 'Wk 1', 'Wk 2', 'Wk 3', 'Mo 1'] : ['Now', 'Week 1', 'Week 2', 'Week 3', 'Month 1'],
             datasets: [
                 {
                     label: 'Without Nuora',
                     data: [50, 45, 40, 35, 30],
                     borderColor: '#BDBDBD',
                     backgroundColor: 'transparent',
-                    borderWidth: 3,
+                    borderWidth: isMobile ? 2.5 : 3,
                     tension: 0.4,
-                    pointRadius: 5,
+                    pointRadius: isMobile ? 4 : 5,
                     pointBackgroundColor: '#BDBDBD'
                 },
                 {
@@ -1512,9 +1521,9 @@ function createTimelineChart(canvasId, color, title) {
                     data: [50, 65, 80, 90, 95],
                     borderColor: color,
                     backgroundColor: 'transparent',
-                    borderWidth: 3,
+                    borderWidth: isMobile ? 2.5 : 3,
                     tension: 0.4,
-                    pointRadius: 5,
+                    pointRadius: isMobile ? 4 : 5,
                     pointBackgroundColor: color,
                     fill: false
                 }
@@ -1523,22 +1532,24 @@ function createTimelineChart(canvasId, color, title) {
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            aspectRatio: 2,
+            aspectRatio: isMobile ? 1.2 : 2,
+            layout: { padding: isMobile ? { top: 4, bottom: 4 } : {} },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        padding: 20,
-                        font: { size: 13, weight: '600', family: 'Montserrat' }
+                        padding: isMobile ? 12 : 20,
+                        font: { size: isMobile ? 11 : 13, weight: '600', family: 'Montserrat' }
                     }
                 },
                 title: {
                     display: true,
                     text: title,
-                    font: { size: 16, weight: '700', family: 'Montserrat' },
-                    padding: { bottom: 20 }
+                    font: { size: isMobile ? 14 : 16, weight: '700', family: 'Montserrat' },
+                    color: '#713B12',
+                    padding: { bottom: isMobile ? 12 : 20 }
                 }
             },
             scales: {
@@ -1550,7 +1561,10 @@ function createTimelineChart(canvasId, color, title) {
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { family: 'Montserrat' } }
+                    ticks: {
+                        font: { size: isMobile ? 11 : 13, family: 'Montserrat' },
+                        color: '#854A0E'
+                    }
                 }
             }
         }
@@ -1572,26 +1586,27 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
                 data: labels.map((_, i) => (i + 1) * (100 / labels.length)),
                 borderColor: color,
                 backgroundColor: 'transparent',
-                borderWidth: 4,
+                borderWidth: isMobile ? 3 : 4,
                 tension: 0.4,
-                pointRadius: 6,
+                pointRadius: isMobile ? 5 : 6,
                 pointBackgroundColor: color,
                 pointBorderColor: '#fff',
-                pointBorderWidth: 3,
+                pointBorderWidth: isMobile ? 2 : 3,
                 fill: false
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            aspectRatio: 2,
+            aspectRatio: isMobile ? 1.2 : 2,
+            layout: { padding: isMobile ? { top: 4, bottom: 4 } : {} },
             plugins: {
                 legend: { display: false },
                 title: {
                     display: true,
                     text: title,
-                    font: { size: 18, weight: '700', family: 'Montserrat' },
-                    padding: { bottom: 30 },
+                    font: { size: isMobile ? 15 : 18, weight: '700', family: 'Montserrat' },
+                    padding: { bottom: isMobile ? 16 : 30 },
                     color: '#713B12'
                 },
                 tooltip: {
@@ -1602,8 +1617,8 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
                     },
                     backgroundColor: color,
                     padding: 12,
-                    titleFont: { size: 14, weight: '600', family: 'Montserrat' },
-                    bodyFont: { size: 13, family: 'Montserrat' }
+                    titleFont: { size: isMobile ? 12 : 14, weight: '600', family: 'Montserrat' },
+                    bodyFont: { size: isMobile ? 12 : 13, family: 'Montserrat' }
                 }
             },
             scales: {
@@ -1616,7 +1631,7 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
                 x: {
                     grid: { display: false },
                     ticks: {
-                        font: { size: 12, weight: '600', family: 'Montserrat' },
+                        font: { size: isMobile ? 11 : 12, weight: '600', family: 'Montserrat' },
                         color: '#713B12'
                     }
                 }
