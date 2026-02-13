@@ -1622,7 +1622,7 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
             responsive: true,
             maintainAspectRatio: true,
             aspectRatio: isMobile ? 1.1 : 1.6,
-            layout: { padding: { top: 8, right: 20, bottom: 4, left: 4 } },
+            layout: { padding: { top: 12, right: 20, bottom: 4, left: 4 } },
             plugins: {
                 legend: { display: false },
                 title: {
@@ -1651,7 +1651,7 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
             scales: {
                 y: {
                     min: 10,
-                    max: 105,
+                    max: 115,
                     grid: { color: '#F0F0F0' },
                     ticks: {
                         callback: function(value) {
