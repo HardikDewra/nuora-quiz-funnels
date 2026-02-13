@@ -16,9 +16,7 @@ A fully-functional, responsive quiz funnel for Nuora with two personalized pathw
 
 ```
 nuora-quiz-funnel/
-├── index.html      # Main HTML structure with all quiz steps
-├── style.css       # Styling with Nuora color palette
-├── script.js       # Quiz logic, routing, and Chart.js initialization
+├── index.html      # Single consolidated file (HTML + CSS + JS)
 └── README.md       # This file
 ```
 
