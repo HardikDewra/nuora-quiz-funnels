@@ -1568,7 +1568,17 @@ function createTimelineChart(canvasId, color, title) {
                     min: 20,
                     max: 100,
                     grid: { color: '#F0F0F0' },
-                    ticks: { display: false }
+                    ticks: {
+                        callback: function(value) {
+                            if (value === 20) return 'Low';
+                            if (value === 60) return 'Medium';
+                            if (value === 100) return 'High';
+                            return '';
+                        },
+                        font: { size: isMobile ? 10 : 12, family: 'Montserrat', weight: '500' },
+                        color: '#854A0E',
+                        stepSize: 40
+                    }
                 },
                 x: {
                     grid: { display: false },
@@ -1612,7 +1622,7 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
             responsive: true,
             maintainAspectRatio: true,
             aspectRatio: isMobile ? 1.1 : 1.6,
-            layout: { padding: { top: 8, right: 20, bottom: 4, left: 20 } },
+            layout: { padding: { top: 8, right: 20, bottom: 4, left: 4 } },
             plugins: {
                 legend: { display: false },
                 title: {
@@ -1643,7 +1653,18 @@ function createResultsChart(canvasId, color, title, labels, milestones) {
                     min: 10,
                     max: 105,
                     grid: { color: '#F0F0F0' },
-                    ticks: { display: false }
+                    ticks: {
+                        callback: function(value) {
+                            if (value === 25) return 'Starting';
+                            if (value === 50) return 'Improving';
+                            if (value === 75) return 'Strong';
+                            if (value === 100) return 'Optimal';
+                            return '';
+                        },
+                        font: { size: isMobile ? 9 : 12, family: 'Montserrat', weight: '500' },
+                        color: '#854A0E',
+                        stepSize: 25
+                    }
                 },
                 x: {
                     grid: { display: false },
