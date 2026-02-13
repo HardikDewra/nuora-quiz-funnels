@@ -1542,14 +1542,14 @@ function createTimelineChart(canvasId, color, title) {
             responsive: true,
             maintainAspectRatio: true,
             aspectRatio: isMobile ? 1.1 : 1.6,
-            layout: { padding: { top: 8, right: 16, bottom: 4, left: 16 } },
+            layout: { padding: { top: 8, right: 16, bottom: 4, left: 0 } },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        pointStyleWidth: 10,
+                        pointStyle: 'circle',
                         padding: isMobile ? 16 : 24,
                         font: { size: isMobile ? 11 : 13, weight: '600', family: 'Montserrat' },
                         color: '#713B12'
