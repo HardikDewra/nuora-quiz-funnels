@@ -1213,19 +1213,11 @@ const tracker = {
     },
 
     sendToSheets: function(event) {
-        if (SHEETS_WEBHOOK_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
-        try {
-            var blob = new Blob([JSON.stringify(event)], { type: 'application/json' });
-            navigator.sendBeacon(SHEETS_WEBHOOK_URL, blob);
-        } catch (e) {
-            // Fallback to fetch
-            fetch(SHEETS_WEBHOOK_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event)
-            }).catch(function() {});
-        }
+        var params = Object.keys(event).map(function(key) {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(event[key]);
+        }).join('&');
+        var img = new Image();
+        img.src = SHEETS_WEBHOOK_URL + '?' + params;
     }
 };
 
