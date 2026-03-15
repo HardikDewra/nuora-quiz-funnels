@@ -7,6 +7,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F7V43NV3V2"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-F7V43NV3V2');
+    </script>
+
     <style>
 :root {
     --yellow-100: #FEF7C3;
@@ -1105,6 +1115,123 @@ const quizState = {
 
 const charts = {};
 
+// ============================================
+// DROP-OFF TRACKER - Google Sheets + GA4
+// ============================================
+const SHEETS_WEBHOOK_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
+const tracker = {
+    sessionId: crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2),
+    startTime: Date.now(),
+    eventQueue: [],
+
+    stepNames: {
+        'step1': 'Age Range',
+        'step2': 'Symptom Selection',
+        'step3a': 'Duration (Path A)',
+        'step4a': 'Familiar Symptoms (Path A)',
+        'step4a-stats': 'Stats Display (Path A)',
+        'step5a': 'What Tried (Path A)',
+        'step5a-proof': 'Social Proof (Path A)',
+        'step6a': 'Frustration (Path A)',
+        'step7a': 'Timeline Goal (Path A)',
+        'step7a-achievability': 'Achievability (Path A)',
+        'step8a': 'Final Goal (Path A)',
+        'loadingA': 'Loading (Path A)',
+        'resultsA': 'Results (Path A)',
+        'step3b': 'Duration (Path B)',
+        'step4b': 'Familiar Symptoms (Path B)',
+        'step4b-stats': 'Stats Display (Path B)',
+        'step5b': 'What Tried (Path B)',
+        'step5b-proof': 'Social Proof (Path B)',
+        'step6b': 'Frustration (Path B)',
+        'step7b': 'Timeline Goal (Path B)',
+        'step7b-achievability': 'Achievability (Path B)',
+        'step8b': 'Final Goal (Path B)',
+        'loadingB': 'Loading (Path B)',
+        'resultsB': 'Results (Path B)'
+    },
+
+    stepNumbers: {
+        'step1': 1, 'step2': 2,
+        'step3a': 3, 'step3b': 3,
+        'step4a': 4, 'step4b': 4,
+        'step4a-stats': 5, 'step4b-stats': 5,
+        'step5a': 6, 'step5b': 6,
+        'step5a-proof': 7, 'step5b-proof': 7,
+        'step6a': 8, 'step6b': 8,
+        'step7a': 9, 'step7b': 9,
+        'step7a-achievability': 10, 'step7b-achievability': 10,
+        'step8a': 11, 'step8b': 11,
+        'loadingA': 12, 'loadingB': 12,
+        'resultsA': 13, 'resultsB': 13
+    },
+
+    getPath: function(stepId) {
+        if (stepId === 'step1' || stepId === 'step2') return 'shared';
+        if (stepId.endsWith('A') || stepId.includes('a-') || stepId.includes('a')) {
+            return quizState.selectedPath || 'A';
+        }
+        return quizState.selectedPath || 'B';
+    },
+
+    trackStep: function(stepId, eventType) {
+        var path = this.getPath(stepId);
+        var event = {
+            timestamp: new Date().toISOString(),
+            session_id: this.sessionId,
+            step_id: stepId,
+            step_name: this.stepNames[stepId] || stepId,
+            step_number: this.stepNumbers[stepId] || 0,
+            path: path,
+            event_type: eventType || 'step_view',
+            user_agent: navigator.userAgent,
+            referrer: document.referrer || 'direct'
+        };
+
+        // Send to GA4
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'quiz_step', {
+                step_id: stepId,
+                step_name: event.step_name,
+                step_number: event.step_number,
+                quiz_path: path,
+                event_type: eventType || 'step_view',
+                session_id: this.sessionId
+            });
+
+            if (eventType === 'quiz_complete') {
+                gtag('event', 'quiz_complete', {
+                    quiz_path: path,
+                    session_id: this.sessionId
+                });
+            }
+        }
+
+        // Send to Google Sheets
+        this.sendToSheets(event);
+    },
+
+    sendToSheets: function(event) {
+        if (SHEETS_WEBHOOK_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
+        try {
+            var blob = new Blob([JSON.stringify(event)], { type: 'application/json' });
+            navigator.sendBeacon(SHEETS_WEBHOOK_URL, blob);
+        } catch (e) {
+            // Fallback to fetch
+            fetch(SHEETS_WEBHOOK_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(event)
+            }).catch(function() {});
+        }
+    }
+};
+
+// Track quiz start on page load
+tracker.trackStep('step1', 'quiz_start');
+
 // Config for which steps show the bottom continue bar
 const continueConfig = {
     'step2': { action: 'route', multiSelect: true },
@@ -1267,6 +1394,13 @@ function navigateToStep(stepId) {
     if (nextStep) {
         nextStep.classList.add('active');
         quizState.currentStep = stepId;
+
+        // Track step view
+        var eventType = 'step_view';
+        if (stepId === 'resultsA' || stepId === 'resultsB') {
+            eventType = 'quiz_complete';
+        }
+        tracker.trackStep(stepId, eventType);
 
         updateProgress();
         updateBottomBar();
